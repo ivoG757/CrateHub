@@ -1,6 +1,6 @@
 using Api.Data.Dtos;
 
-namespace Api.Services.Interaces;
+namespace Api.Services.Interfaces;
 
 public interface IExceptionTranslator
 {

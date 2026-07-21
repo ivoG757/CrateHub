@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Resources;
+using System.ComponentModel.DataAnnotations.Schema;
 using static Api.Constants.Constants.UserConstants;
 namespace Api.Data.Models;
 
@@ -18,4 +18,5 @@ public class User
     [Required]
     [StringLength(MaxLengthForPassword, MinimumLength = MinLengthForPassword)]
     public string PasswordHash { get; set; } = null!;
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

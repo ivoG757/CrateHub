@@ -1,5 +1,5 @@
 using Api.Responses;
-using Api.Services.Interaces;
+using Api.Services.Interfaces;
 
 namespace Api.Middleware;
 

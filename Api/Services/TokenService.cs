@@ -1,9 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
-using Api.Services.Interaces;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Api.Services.Interfaces;
+using static Api.Constants.Constants.RefreshTokenConstants;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Services;
@@ -35,5 +36,9 @@ public class TokenService : ITokenService
         signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    public string CreateRefreshToken()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytesLength));
     }
 }

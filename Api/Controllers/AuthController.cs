@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Api.Data.Dtos;
-using Api.Services.Interaces;
+using Api.Services.Interfaces;
 namespace Api.Controllers;
 
 [ApiController]
@@ -15,18 +15,25 @@ public class AuthController : ControllerBase
         _authService = service;
     }
 
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResponseDto>> Refresh([FromBody] RefreshTokenDto dto)
+    {
+        var tokens = await _authService.RefreshAsync(dto);
+
+        return Ok(tokens);
+    }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto dto)
     {
-        var token = await _authService.RegisterAsync(dto);
-        return Ok(new { Token = token });
+        var tokens = await _authService.RegisterAsync(dto);
+        return Ok(tokens);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
+    public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
     {
-        var token = await _authService.LoginAsync(dto);
-        return Ok(new { Token = token });
+        var tokens = await _authService.LoginAsync(dto);
+        return Ok(tokens);
     }
 }

@@ -1,6 +1,6 @@
 using Api.Exceptions;
 using static Microsoft.AspNetCore.Http.StatusCodes;
-using Api.Services.Interaces;
+using Api.Services.Interfaces;
 namespace Api.Services.ExceptionHandling
 {
     public class ExceptionTranslator : IExceptionTranslator

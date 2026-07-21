@@ -16,4 +16,8 @@ public static class Constants
         public const int MaxLengthForUsername = 20;
         public const int MinLengthForUsername = 5;
     }
+    public static class RefreshTokenConstants
+    {
+        public const int RefreshTokenBytesLength = 32;
+    }
 }
