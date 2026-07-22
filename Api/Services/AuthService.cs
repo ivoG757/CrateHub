@@ -4,8 +4,7 @@ using Api.Repository.Interfaces;
 using Api.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Api.Exceptions;
-using Api.Constants;
-using Api.Responses;
+using Api.Repositories;
 namespace Api.Services;
 
 public class AuthService : IAuthService
@@ -68,7 +67,7 @@ public class AuthService : IAuthService
 
         var newRefreshToken = _tokenService.CreateRefreshToken();
 
-        _refTokenRepository.Delete(token);
+        _refTokenRepository.Delete(token!);
 
         await _refTokenRepository.AddAsync(new RefreshToken
         {
@@ -109,7 +108,7 @@ public class AuthService : IAuthService
         user.PasswordHash = hash;
 
         var savedUser = await _userRep.AddAsync(user);
-
+        await _unitOfWork.SaveChangesAsync();
         return await CreateAuthResponseAsync(savedUser);
     }
     private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)
