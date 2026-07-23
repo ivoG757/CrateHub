@@ -38,7 +38,6 @@ public class AuthService : IAuthService
         {
             throw new InvalidCredentialsException();
         }
-
         return await CreateAuthResponseAsync(user);
     }
 
@@ -108,7 +107,6 @@ public class AuthService : IAuthService
         user.PasswordHash = hash;
 
         var savedUser = await _userRep.AddAsync(user);
-        await _unitOfWork.SaveChangesAsync();
         return await CreateAuthResponseAsync(savedUser);
     }
     private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)
@@ -124,7 +122,7 @@ public class AuthService : IAuthService
 
         await _refTokenRepository.AddAsync(new RefreshToken
         {
-            UserId = user.Id,
+            User = user,
             Token = refreshToken,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7)

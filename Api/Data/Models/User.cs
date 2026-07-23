@@ -14,6 +14,7 @@ public class User
     [Required]
     [EmailAddress]
     public string Email { get; set; } = null!;
+
     public string PasswordHash { get; set; } = null!;
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
