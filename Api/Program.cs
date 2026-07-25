@@ -42,6 +42,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IExceptionTranslator, ExceptionTranslator>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IShareTokenGenerator, ShareTokenGenerator>();
+builder.Services.AddScoped<IFileStorage, FileStorage>();
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IUrlProvider, UrlProvider>();
+builder.Services.AddScoped<IFileRepository, FileRepository>();
 
 
 builder.Services

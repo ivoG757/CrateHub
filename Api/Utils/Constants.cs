@@ -1,4 +1,4 @@
-namespace Api.Constants;
+namespace Api.Utils;
 
 public static class Constants
 {
@@ -19,5 +19,21 @@ public static class Constants
     public static class RefreshTokenConstants
     {
         public const int RefreshTokenBytesLength = 32;
+    }
+    public static class FileConstants
+    {
+        public const long FileLengthLimit = 10L * 1024 * 1024 * 1024;
+        public const int buffer = 8192;
+        public static readonly ICollection<string> ForbiddenExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".exe",
+            ".dll",
+            ".com",
+            ".scr",
+            ".sys",
+            ".drv",
+            ".cpl",
+            ".ocx"
+        };
     }
 }

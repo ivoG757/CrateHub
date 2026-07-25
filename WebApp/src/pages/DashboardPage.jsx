@@ -1,16 +1,18 @@
 import { useAuth } from "../Utils/AuthContext";
 import {useEffect, useState, useRef} from 'react';
-import {uploadFile, loadFiles} from '../Utils/api/Files';
+import { useAuthenticatedApi } from "../Utils/AuthenticationApi";
 import { useNavigate } from "react-router-dom";
+
 export default function DashboardPage()
 {
     const [error, setError] = useState("");
     const [uploading, setUploading] = useState(false);
-    const { user, token, loading } = useAuth();
     const [files, setFiles] = useState([]);
     const [uploadedFile, setUploadedFile] = useState();
+    const { loading, user } = useAuth();
     const fileInputRef = useRef();
     const navigate = useNavigate();
+    const api = useAuthenticatedApi();
 
     
     async function upload()
@@ -20,7 +22,7 @@ export default function DashboardPage()
         setUploading(true)
         try 
         {
-            const file = await uploadFile(token, uploadedFile);
+            const file = await api.uploadNewFile(uploadedFile);
             setFiles(current => [...current, file]);
         }
 
@@ -37,38 +39,47 @@ export default function DashboardPage()
         }
     }
 
-    useEffect(() => 
+   useEffect(() =>
     {
         async function load()
         {
             try
             {
-                const filesFromDb = await loadFiles(token);
-
-                setFiles(filesFromDb)
+                const filesFromDb = await api.loadMyFiles();
+                setFiles(filesFromDb);
             }
             catch(e)
             {
                 setError(e.message);
             }
-            
         }
-        
 
-        load();
+        if (user)
+        {
+            load();
+        }
 
-    }, [token])
+    }, [api, user]);
+
+    useEffect(() =>
+    {
+        if (!loading && !user)
+        {
+            navigate("/login");
+        }
+
+    }, [loading, user]);
 
      if (loading)
-        {
-            return <p>Loading...</p>;
-        }
-    
-        if (!user)
-        {
-            return navigate("/login")
-        }
+     {
+         return <p>Loading...</p>;
+     }
 
+     if (!user)
+     {
+         return null;
+     }
+ 
     return(
     <div className="Dashboard-container">
         <h1>Welcome, {user.name}, with id: {user.id}</h1>

@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using static Api.Constants.Constants.UserConstants;
+using static Api.Utils.Constants.UserConstants;
 namespace Api.Data.Models;
 
 public class User
@@ -17,4 +17,5 @@ public class User
 
     public string PasswordHash { get; set; } = null!;
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public ICollection<FileEntry> FileEntries { get; set; } = new List<FileEntry>();
 }

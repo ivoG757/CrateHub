@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Api.Services.Interfaces;
-using static Api.Constants.Constants.RefreshTokenConstants;
+using static Api.Utils.Constants.RefreshTokenConstants;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Services;

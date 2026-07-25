@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using static Api.Constants.Constants.RegisterDtoConstants;
+using static Api.Utils.Constants.RegisterDtoConstants;
 namespace Api.Data.Dtos;
 
 public class RegisterDto

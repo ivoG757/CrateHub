@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import Auth from "./api/auth/Auth.js";
+import Auth from "./api/Auth.js";
 
 const AuthContext = createContext();
 
@@ -8,21 +8,23 @@ export function AuthProvider({ children })
     const [token, setToken] = useState(null);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshToken, setRefreshToken] = useState(null);
 
     // Load token when app starts
     useEffect(() => 
     {
         const storedToken = localStorage.getItem("token");
+        const storedRefreshToken = localStorage.getItem("refreshToken");
 
-        if (storedToken)
+        if (storedToken && storedRefreshToken)
         {
             setToken(storedToken);
+            setRefreshToken(storedRefreshToken);
         }
         else
         {
             setLoading(false);
         }
-
     }, []);
 
 
@@ -61,10 +63,13 @@ export function AuthProvider({ children })
 
         try
         {
-            const newToken = await Auth.loginUser(username, password);
+            const tokens = await Auth.loginUser(username, password);
 
-            localStorage.setItem("token", newToken);
-            setToken(newToken);
+            localStorage.setItem("token", tokens.token); 
+            localStorage.setItem("refreshToken", tokens.refreshToken)
+            
+            setToken(tokens.token);
+            setRefreshToken(tokens.refreshToken)
         }
 
         catch(error)
@@ -83,13 +88,16 @@ export function AuthProvider({ children })
     {
         
         setLoading(true);
-
+        
         try
         {
-            const newToken = await Auth.registerUser(email, username, password);
+            const tokens = await Auth.registerUser(email, username, password);
 
-            localStorage.setItem("token", newToken);
-            setToken(newToken);
+            localStorage.setItem("token", tokens.token); 
+            localStorage.setItem("refreshToken", tokens.refreshToken)
+            
+            setToken(tokens.token);
+            setRefreshToken(tokens.refreshToken)
         }
 
         catch(error)
@@ -108,8 +116,38 @@ export function AuthProvider({ children })
     function logout() 
     {
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken")
         setToken(null);
+        setRefreshToken(null);
         setUser(null);
+    }
+
+    async function refresh()
+    {
+        if (!refreshToken)
+        {
+            logout();
+            throw new Error("Missing refresh token");
+        }
+
+        try
+        {
+            const tokens = await Auth.refreshUserAccess(refreshToken);
+
+            localStorage.setItem("token", tokens.token);
+            localStorage.setItem("refreshToken", tokens.refreshToken);
+
+            setToken(tokens.token);
+            setRefreshToken(tokens.refreshToken);
+
+            return tokens.token;
+        }
+        
+        catch(error)
+        {
+            logout();
+            throw error;
+        }
     }
 
 
@@ -117,8 +155,10 @@ export function AuthProvider({ children })
         <AuthContext.Provider value=
         {{
             token,
+            refreshToken,
             user,
             loading,
+            refresh,
             register,
             login,
             logout

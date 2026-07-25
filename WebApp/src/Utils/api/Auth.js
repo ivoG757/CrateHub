@@ -16,7 +16,7 @@ async function registerUser(email, username, password)
         throw new Error(data.message);
     }
     
-    return data.token;
+     return {token: data.accessToken, refreshToken: data.refreshToken};
 }
 
 async function loginUser(username, password)
@@ -41,7 +41,7 @@ async function loginUser(username, password)
     }
 
 
-    return data.token;
+     return {token: data.accessToken, refreshToken: data.refreshToken};
 }
 
 async function getUser(token)
@@ -54,6 +54,7 @@ async function getUser(token)
             "Authorization": `Bearer ${token}`
         }
     });
+
     const data = await response.json();
     
     console.log(response) //debug
@@ -66,4 +67,25 @@ async function getUser(token)
     return data;
 }
 
-export default { registerUser, loginUser, getUser };
+async function refreshUserAccess(refreshToken)
+{
+    const response = await fetch('http://localhost:5127/api/authentication/refresh',
+    {
+        method: 'POST',
+        headers:
+        {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refreshToken })
+    });
+
+    if (!response.ok)
+    {
+        throw new Error(data.message);
+    }
+    
+    const data = await response.json();
+
+     return {token: data.accessToken, refreshToken: data.refreshToken};
+}
+export default { registerUser, refreshUserAccess, loginUser, getUser };
