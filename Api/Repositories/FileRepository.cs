@@ -15,8 +15,24 @@ public class FileRepository : IFileRepository
     {
         await _context.FileEntries.AddAsync(file);
     }
+
+    public void Delete(FileEntry file)
+    {
+        _context.FileEntries.Remove(file);
+    }
+
     public async Task<FileEntry> GetByPublicTokenAsync(string token)
     {
         return await _context.FileEntries.FirstOrDefaultAsync(fe => fe.ShareToken == token);
+    }
+
+    public async Task<ICollection<FileEntry>> GetExpiredFiles()
+    {
+        return await _context.FileEntries.Where(fe => fe.ExpiresAt < DateTime.UtcNow).ToArrayAsync();
+    }
+
+    public async Task<ICollection<FileEntry>> GetFilesAsync(int userId)
+    {
+        return await _context.FileEntries.Where(fe => fe.UserId == userId).ToArrayAsync();
     }
 }

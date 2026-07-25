@@ -8,7 +8,7 @@
                 const formData = new FormData();
                 formData.append("file", file);
 
-                const response = await fetch('http://localhost:3000/api/UploadFile', 
+                const response = await fetch('http://localhost:5127/api/files/upload', 
                 { 
                     method: "POST",
                     headers: 
@@ -31,7 +31,7 @@
     
     export async function loadFiles(token)
         {
-            const response = await fetch('http://localhost:3000/api/files',
+            const response = await fetch('http://localhost:5127/api/files',
             {
                 method: "GET",
                 headers:

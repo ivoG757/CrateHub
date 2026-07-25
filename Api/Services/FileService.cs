@@ -33,7 +33,7 @@ public class FileService : IFileService
         FileValidate(file);
         try
         {
-            path = await _fileStorage.SaveAsync(file);
+            path = await _fileStorage.SaveAsync(file, userId);
 
             var entry = new FileEntry
             {
@@ -89,5 +89,27 @@ public class FileService : IFileService
         {
             throw new FileFormatNotSupportedException();
         }
+    }
+
+    public Task DeleteAsync(FileDto dto, int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<ICollection<FileDto>> GetFilesAsync(int userId)
+    {
+        var files = await _fileRepository.GetFilesAsync(userId);
+
+        return files.Select(f => new FileDto
+        {
+            Id = f.Id,
+            FileName = f.Name,
+            FileType = f.ContentType,
+            FileSize = f.Size,
+            DownloadUrl = _urlProvider.Create(f.ShareToken),
+            UploadedAt = f.UploadedAt,
+            ExpiresAt = f.ExpiresAt
+
+        }).ToArray();
     }
 }

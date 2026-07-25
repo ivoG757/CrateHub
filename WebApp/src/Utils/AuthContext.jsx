@@ -9,6 +9,7 @@ export function AuthProvider({ children })
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshToken, setRefreshToken] = useState(null);
+    const [initialized, setInitialized] = useState(false);
 
     // Load token when app starts
     useEffect(() => 
@@ -20,6 +21,7 @@ export function AuthProvider({ children })
         {
             setToken(storedToken);
             setRefreshToken(storedRefreshToken);
+            setInitialized(true);
         }
         else
         {
@@ -32,6 +34,10 @@ export function AuthProvider({ children })
     {
         async function fetchUser() 
         {
+            if (!initialized)
+            {
+                return;
+            }
             if (!token)
             {
                 setUser(null);

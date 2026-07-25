@@ -9,7 +9,7 @@ export default function DashboardPage()
     const [uploading, setUploading] = useState(false);
     const [files, setFiles] = useState([]);
     const [uploadedFile, setUploadedFile] = useState();
-    const { loading, user } = useAuth();
+    const { loading, user, logout } = useAuth();
     const fileInputRef = useRef();
     const navigate = useNavigate();
     const api = useAuthenticatedApi();
@@ -83,13 +83,14 @@ export default function DashboardPage()
     return(
     <div className="Dashboard-container">
         <h1>Welcome, {user.name}, with id: {user.id}</h1>
+        <button onClick={logout}>logout</button>
         {files.length === 0 ? (<p>You haven't uploaded any files yet.</p>) : 
         (<ul>
             
             {files.map(file => 
             
             <li key={file.id}>
-                <h3>{file.name}</h3> <p>Expires: {file.expiresAt}</p>
+                <h3>{file.fileName}</h3> <p>Expires: {file.expiresAt}</p>
                 <button>Copy Link</button>
             </li>)}
 

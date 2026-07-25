@@ -24,4 +24,26 @@ public class FileController : ControllerBase
 
         return Ok(uploaded);
     }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetFiles()
+    {
+        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+
+        var files = await _fileService.GetFilesAsync(userId);
+
+        return Ok(files);
+    }
+
+    [Authorize]
+    [HttpPost("delete")]
+    public async Task<IActionResult> Delete([FromForm] IFormFile file)
+    {
+        // var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+
+        // var uploaded = await _fileService.(file, userId);
+        //ill leave it for later
+        return Ok();
+    }
 }

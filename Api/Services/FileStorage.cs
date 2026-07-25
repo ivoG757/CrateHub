@@ -1,5 +1,6 @@
 using static Api.Utils.Constants.FileConstants;
 using Api.Services.Interfaces;
+using Api.Repository.Interfaces;
 namespace Api.Services;
 
 public class FileStorage : IFileStorage
@@ -22,12 +23,18 @@ public class FileStorage : IFileStorage
         throw new NotImplementedException();
     }
 
-    public async Task<string> SaveAsync(IFormFile file)
+    public async Task<string> SaveAsync(IFormFile file, int userId)
     {
+        var userFolder = Path.Combine(
+        _basePath,
+        userId.ToString());
+
+        Directory.CreateDirectory(userFolder);
+
         var extension = Path.GetExtension(file.FileName);
         var storedName = $"{Guid.NewGuid():N}{extension}";
 
-        var path = Path.Combine(_basePath, storedName);
+        var path = Path.Combine(userFolder, storedName);
 
         await using var fileStream = new FileStream(
             path,
