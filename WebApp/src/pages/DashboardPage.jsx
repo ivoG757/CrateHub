@@ -59,16 +59,7 @@ export default function DashboardPage()
             load();
         }
 
-    }, [api, user]);
-
-    useEffect(() =>
-    {
-        if (!loading && !user)
-        {
-            navigate("/login");
-        }
-
-    }, [loading, user]);
+    }, [user]);
 
      if (loading)
      {
@@ -90,8 +81,11 @@ export default function DashboardPage()
             {files.map(file => 
             
             <li key={file.id}>
-                <h3>{file.fileName}</h3> <p>Expires: {file.expiresAt}</p>
-                <button>Copy Link</button>
+                <h3>{file.fileName}</h3> <p>Expires: {file.expiresAt}</p> <p>Uploaded at: {file.uploadedAt}</p>
+
+                <button onClick={() => navigator.clipboard.writeText(file.downloadUrl)}>
+                    Copy Link
+                </button>
             </li>)}
 
         </ul>)}
