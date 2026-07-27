@@ -28,12 +28,16 @@ public class FileService : IFileService
 
     public async Task<FileDto> UploadAsync(IFormFile file, int userId)
     {
+        Console.WriteLine($"Uploading for user {userId}");
+
         string? path = null;
 
         FileValidate(file);
         try
         {
             path = await _fileStorage.SaveAsync(file, userId);
+
+            var now = DateTime.UtcNow;
 
             var entry = new FileEntry
             {
@@ -43,8 +47,8 @@ public class FileService : IFileService
                 ContentType = file.ContentType,
                 Size = file.Length,
                 ShareToken = _shareTokenGenerator.Generate(),
-                UploadedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(30),
+                UploadedAt = now,
+                ExpiresAt = now.AddMinutes(30),
                 UserId = userId
             };
 
@@ -77,6 +81,11 @@ public class FileService : IFileService
     }
     private static void FileValidate(IFormFile file)
     {
+        if (file == null || file.Length == 0)
+        {
+            throw new FileFormatNotSupportedException();
+        }
+
         if (file.Length > FileLengthLimit)
         {
             throw new FileTooLargeException();
@@ -91,9 +100,18 @@ public class FileService : IFileService
         }
     }
 
-    public Task DeleteAsync(FileDto dto, int userId)
+    public async Task DeleteAsync(int fileId, int userId)
     {
-        throw new NotImplementedException();
+        var fileToDelete = await _fileRepository.GetFileByIdAsync(fileId, userId);
+
+        if (fileToDelete == null)
+        {
+            throw new FileNotFoundException("File not found");
+        }
+
+        _fileRepository.Delete(fileToDelete);
+        _fileStorage.Delete(fileToDelete.Path);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<ICollection<FileDto>> GetFilesAsync(int userId)

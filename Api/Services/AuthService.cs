@@ -107,6 +107,9 @@ public class AuthService : IAuthService
         user.PasswordHash = hash;
 
         var savedUser = await _userRep.AddAsync(user);
+
+        await _unitOfWork.SaveChangesAsync();
+
         return await CreateAuthResponseAsync(savedUser);
     }
     private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)

@@ -27,7 +27,7 @@ public class FileCleanupService : BackgroundService
             .GetRequiredService<IUnitOfWork>();
 
 
-        var expiredFiles = await fileRepository.GetExpiredFiles();
+        var expiredFiles = await fileRepository.GetExpiredFileEntriesAsync();
 
         foreach (var file in expiredFiles)
         {

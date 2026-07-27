@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Api.Services.Interfaces;
+using Api.Data.Dtos;
 namespace Api.Controllers;
 
 [ApiController]
@@ -16,9 +17,9 @@ public class FileController : ControllerBase
 
     [Authorize]
     [HttpPost("upload")]
-    public async Task<IActionResult> Upload([FromForm] IFormFile file)
+    public async Task<IActionResult> Upload(IFormFile file)
     {
-        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetUserId();
 
         var uploaded = await _fileService.UploadAsync(file, userId);
 
@@ -29,7 +30,7 @@ public class FileController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetFiles()
     {
-        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetUserId();
 
         var files = await _fileService.GetFilesAsync(userId);
 
@@ -37,13 +38,17 @@ public class FileController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("delete")]
-    public async Task<IActionResult> Delete([FromForm] IFormFile file)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
     {
-        // var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetUserId();
 
-        // var uploaded = await _fileService.(file, userId);
-        //ill leave it for later
-        return Ok();
+        await _fileService.DeleteAsync(id, userId);
+
+        return NoContent();
+    }
+    public int GetUserId()
+    {
+        return int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
     }
 }

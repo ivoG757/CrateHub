@@ -29,6 +29,26 @@ export default function DashboardPage() {
 
         loadFiles();
     }, []);
+    
+
+    async function removeFile(id)
+    {
+        console.log(`deleting: ${id}`);
+
+        try
+        {
+            await api.deleteMyFile(id);
+
+            setFiles(current =>
+                current.filter(file => file.id !== id)
+            );
+        }
+        catch(e)
+        {
+            setError(e.message);
+        }
+    }
+
 
     async function upload() {
         if (!uploadedFile)
@@ -95,6 +115,12 @@ export default function DashboardPage() {
                                 onClick={() => copyLink(file.downloadUrl)}
                             >
                                 Copy Link
+                            </button>
+
+                            <button
+                                onClick={() => removeFile(file.id)}
+                                >
+                                Delete
                             </button>
 
                         </li>

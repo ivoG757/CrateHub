@@ -21,14 +21,22 @@ public class FileRepository : IFileRepository
         _context.FileEntries.Remove(file);
     }
 
-    public async Task<FileEntry> GetByPublicTokenAsync(string token)
+    public async Task<FileEntry?> GetByPublicTokenAsync(string token)
     {
         return await _context.FileEntries.FirstOrDefaultAsync(fe => fe.ShareToken == token);
     }
 
-    public async Task<ICollection<FileEntry>> GetExpiredFiles()
+    public async Task<ICollection<FileEntry>> GetExpiredFileEntriesAsync()
     {
-        return await _context.FileEntries.Where(fe => fe.ExpiresAt < DateTime.UtcNow).ToArrayAsync();
+        return await _context.FileEntries.AsNoTracking().Where(fe => fe.ExpiresAt < DateTime.UtcNow).ToArrayAsync();
+    }
+
+    public async Task<FileEntry?> GetFileByIdAsync(int id, int userId)
+    {
+        return await _context.FileEntries
+            .FirstOrDefaultAsync(f =>
+                f.Id == id &&
+                f.UserId == userId);
     }
 
     public async Task<ICollection<FileEntry>> GetFilesAsync(int userId)

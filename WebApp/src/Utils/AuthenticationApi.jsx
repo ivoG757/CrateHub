@@ -1,4 +1,4 @@
-import {loadFiles, uploadFile } from "./api/Files.js"
+import { loadFiles, uploadFile, deleteFile } from "./api/Files.js"
 import { useAuth } from "./AuthContext.jsx"
 
 export default function useAuthenticatedApi()
@@ -14,8 +14,14 @@ export default function useAuthenticatedApi()
     {
         return uploadFile(getToken(), file);
     }
+
+    function deleteMyFile(id)
+    {
+        return deleteFile(getToken(), id)
+    }
     
     return {
     loadMyFiles,
+    deleteMyFile,
     uploadNewFile };
 }
