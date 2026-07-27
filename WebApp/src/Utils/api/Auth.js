@@ -79,12 +79,13 @@ async function refreshUserAccess(refreshToken)
         body: JSON.stringify({ refreshToken })
     });
 
+    const data = await response.json();
+    
     if (!response.ok)
     {
         throw new Error(data.message);
     }
     
-    const data = await response.json();
 
      return {token: data.accessToken, refreshToken: data.refreshToken};
 }

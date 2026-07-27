@@ -1,104 +1,130 @@
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../Utils/AuthContext";
-import {useEffect, useState, useRef} from 'react';
-import { useAuthenticatedApi } from "../Utils/AuthenticationApi";
-import { useNavigate } from "react-router-dom";
+import useAuthenticatedApi from "../Utils/AuthenticationApi.jsx";
 
-export default function DashboardPage()
-{
-    const [error, setError] = useState("");
-    const [uploading, setUploading] = useState(false);
-    const [files, setFiles] = useState([]);
-    const [uploadedFile, setUploadedFile] = useState();
-    const { loading, user, logout } = useAuth();
-    const fileInputRef = useRef();
-    const navigate = useNavigate();
+export default function DashboardPage() {
     const api = useAuthenticatedApi();
+    const { user, logout } = useAuth();
 
-    
-    async function upload()
+    const [files, setFiles] = useState([]);
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState("");
+
+    const fileInputRef = useRef(null);
+
+    useEffect(() => 
     {
-        
+        async function loadFiles() {
+            try 
+            {
+                const result = await api.loadMyFiles();
+                setFiles(result);
+            }
+            catch (err) 
+            {
+                setError(err.message);
+            }
+        }
+
+        loadFiles();
+    }, []);
+
+    async function upload() {
+        if (!uploadedFile)
+            return;
+
+        setUploading(true);
         setError("");
-        setUploading(true)
-        try 
-        {
-            const file = await api.uploadNewFile(uploadedFile);
-            setFiles(current => [...current, file]);
-        }
 
-        catch(e)
-        {
-            setError(e.message);
-        }
+        try {
+            const newFile = await api.uploadNewFile(uploadedFile);
 
-        finally
+            setFiles(current => [...current, newFile]);
+
+            setUploadedFile(null);
+
+            if (fileInputRef.current)
+                fileInputRef.current.value = "";
+        }
+        catch (err) 
+        {
+            setError(err.message);
+        }
+        finally 
         {
             setUploading(false);
-            setUploadedFile(null);
-            fileInputRef.current.value = "";
         }
     }
 
-   useEffect(() =>
-    {
-        async function load()
-        {
-            try
-            {
-                const filesFromDb = await api.loadMyFiles();
-                setFiles(filesFromDb);
-            }
-            catch(e)
-            {
-                setError(e.message);
-            }
+    async function copyLink(url) {
+        try {
+            await navigator.clipboard.writeText(url);
+            alert("Copied!");
         }
-
-        if (user)
-        {
-            load();
+        catch {
+            alert("Failed to copy.");
         }
+    }
 
-    }, [user]);
+    return (
+        <div className="Dashboard-container">
 
-     if (loading)
-     {
-         return <p>Loading...</p>;
-     }
+            <h1>Welcome, {user.name}</h1>
 
-     if (!user)
-     {
-         return null;
-     }
- 
-    return(
-    <div className="Dashboard-container">
-        <h1>Welcome, {user.name}, with id: {user.id}</h1>
-        <button onClick={logout}>logout</button>
-        {files.length === 0 ? (<p>You haven't uploaded any files yet.</p>) : 
-        (<ul>
-            
-            {files.map(file => 
-            
-            <li key={file.id}>
-                <h3>{file.fileName}</h3> <p>Expires: {file.expiresAt}</p> <p>Uploaded at: {file.uploadedAt}</p>
+            <button onClick={logout}>
+                Logout
+            </button>
 
-                <button onClick={() => navigator.clipboard.writeText(file.downloadUrl)}>
-                    Copy Link
-                </button>
-            </li>)}
+            <hr />
 
-        </ul>)}
+            {files.length === 0 ? (
+                <p>No files uploaded yet.</p>
+            ) : (
+                <ul>
+                    {files.map(file => (
+                        <li key={file.id}>
 
-        <input
-            ref={fileInputRef}
-            type="file"
-            onChange={(e) => setUploadedFile(e.target.files[0])}
-        />
-        {uploadedFile && (<p>Selected: {uploadedFile.name}</p>)}
-        
-        {error && <p className="error">{error}</p>}
-        <button onClick={upload} disabled={!uploadedFile || uploading}>{uploading ? "Uploading..." : "Submit"}</button>
+                            <h3>{file.fileName}</h3>
 
-    </div>)
+                            <p>Uploaded: {file.uploadedAt}</p>
+
+                            <p>Expires: {file.expiresAt}</p>
+
+                            <button
+                                onClick={() => copyLink(file.downloadUrl)}
+                            >
+                                Copy Link
+                            </button>
+
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            <hr />
+
+            <input
+                ref={fileInputRef}
+                type="file"
+                onChange={e => setUploadedFile(e.target.files[0])}
+            />
+
+            {uploadedFile && (
+                <p>Selected: {uploadedFile.name}</p>
+            )}
+
+            {error && (
+                <p className="error">{error}</p>
+            )}
+
+            <button
+                disabled={!uploadedFile || uploading}
+                onClick={upload}
+            >
+                {uploading ? "Uploading..." : "Upload"}
+            </button>
+
+        </div>
+    );
 }

@@ -1,179 +1,96 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import Auth from "./api/Auth.js";
+import { createContext, useContext, useEffect, useState } from "react";
+import Auth  from "./api/Auth.js";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) 
+export function AuthProvider({ children })
 {
-    const [token, setToken] = useState(null);
+    const api = Auth;
+
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [refreshToken, setRefreshToken] = useState(null);
-    const [initialized, setInitialized] = useState(false);
 
-    // Load token when app starts
-    useEffect(() => 
+    useEffect(() =>
     {
-        const storedToken = localStorage.getItem("token");
-        const storedRefreshToken = localStorage.getItem("refreshToken");
-
-        if (storedToken && storedRefreshToken)
+        async function load()
         {
-            setToken(storedToken);
-            setRefreshToken(storedRefreshToken);
-            setInitialized(true);
-        }
-        else
-        {
-            setLoading(false);
-        }
-    }, []);
+            const token = localStorage.getItem("token");
 
-
-    useEffect(() => 
-    {
-        async function fetchUser() 
-        {
-            if (!initialized)
-            {
-                return;
-            }
             if (!token)
             {
-                setUser(null);
                 setLoading(false);
                 return;
             }
 
             try
             {
-                const userData = await Auth.getUser(token);
-                setUser(userData);
+                const currentUser = await api.getUser(token);
+                setUser(currentUser);
             }
-
+            catch
+            {
+                logout();
+            }
             finally
             {
                 setLoading(false);
             }
-            
         }
 
-        fetchUser();
-
-    }, [token]);
-
+        load();
+    }, []);
 
     async function login(username, password)
     {
-        setLoading(true);
+        const tokens = await api.loginUser(username, password);
 
-        try
-        {
-            const tokens = await Auth.loginUser(username, password);
+        localStorage.setItem("token", tokens.token);
+        localStorage.setItem("refreshToken", tokens.refreshToken);
 
-            localStorage.setItem("token", tokens.token); 
-            localStorage.setItem("refreshToken", tokens.refreshToken)
-            
-            setToken(tokens.token);
-            setRefreshToken(tokens.refreshToken)
-        }
+        const currentUser = await api.getUser(tokens.token);
 
-        catch(error)
-        {
-            logout();
-            throw error;
-        }
+        setUser(currentUser);
+    }
 
-        finally
-        {
-            setLoading(false);
-        }
+    function getToken()
+    {
+        return localStorage.getItem("token");
     }
 
     async function register(email, username, password)
     {
-        
-        setLoading(true);
-        
-        try
-        {
-            const tokens = await Auth.registerUser(email, username, password);
+        const tokens = await api.registerUser(email, username, password);
 
-            localStorage.setItem("token", tokens.token); 
-            localStorage.setItem("refreshToken", tokens.refreshToken)
-            
-            setToken(tokens.token);
-            setRefreshToken(tokens.refreshToken)
-        }
+        localStorage.setItem("token", tokens.token);
+        localStorage.setItem("refreshToken", tokens.refreshToken);
 
-        catch(error)
-        {
-            logout();
-            throw error;
-        }
+        const currentUser = await api.getUser(tokens.token);
 
-        finally
-        {
-            setLoading(false);
-        }
+        setUser(currentUser);
     }
 
-
-    function logout() 
+    function logout()
     {
         localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken")
-        setToken(null);
-        setRefreshToken(null);
+        localStorage.removeItem("refreshToken");
         setUser(null);
     }
 
-    async function refresh()
-    {
-        if (!refreshToken)
-        {
-            logout();
-            throw new Error("Missing refresh token");
-        }
-
-        try
-        {
-            const tokens = await Auth.refreshUserAccess(refreshToken);
-
-            localStorage.setItem("token", tokens.token);
-            localStorage.setItem("refreshToken", tokens.refreshToken);
-
-            setToken(tokens.token);
-            setRefreshToken(tokens.refreshToken);
-
-            return tokens.token;
-        }
-        
-        catch(error)
-        {
-            logout();
-            throw error;
-        }
-    }
-
-
     return (
-        <AuthContext.Provider value=
-        {{
-            token,
-            refreshToken,
-            user,
-            loading,
-            refresh,
-            register,
-            login,
-            logout
-        }}>
+        <AuthContext.Provider
+            value={{
+                user,
+                loading,
+                login,
+                getToken,
+                register,
+                logout
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
 }
-
 
 export function useAuth()
 {
