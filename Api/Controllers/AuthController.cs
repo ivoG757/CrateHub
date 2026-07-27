@@ -16,7 +16,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<AuthResponseDto>> Refresh([FromBody] RefreshTokenDto dto)
+    public async Task<ActionResult<AuthResponseDto>> Refresh(RefreshTokenDto dto)
     {
         var tokens = await _authService.RefreshAsync(dto);
 
@@ -24,14 +24,14 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto dto)
+    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto dto)
     {
         var tokens = await _authService.RegisterAsync(dto);
         return Ok(tokens);
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
+    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
     {
         var tokens = await _authService.LoginAsync(dto);
         return Ok(tokens);

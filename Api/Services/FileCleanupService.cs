@@ -33,7 +33,7 @@ public class FileCleanupService : BackgroundService
         {
             try
             {
-                await fileStorage.DeleteAsync(file.Path);
+                fileStorage.Delete(file.Path);
 
                 fileRepository.Delete(file);
             }

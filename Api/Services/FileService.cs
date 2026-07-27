@@ -69,7 +69,7 @@ public class FileService : IFileService
         {
             if (path != null)
             {
-                await _fileStorage.DeleteAsync(path);
+                _fileStorage.Delete(path);
             }
 
             throw;

@@ -5,6 +5,6 @@ namespace Api.Services.Interfaces;
 public interface IFileStorage
 {
     Task<string> SaveAsync(IFormFile file, int userId);
-    Task DeleteAsync(string path);
+    void Delete(string path);
     Stream OpenRead(string path);
 }

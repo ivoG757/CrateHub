@@ -45,7 +45,6 @@ public class AuthService : IAuthService
     {
         var token = await _refTokenRepository.GetByTokenAsync(dto.Token);
 
-
         if (token is null)
         {
             throw new InvalidRefreshTokenException();
@@ -54,7 +53,7 @@ public class AuthService : IAuthService
         {
             _refTokenRepository.Delete(token);
             await _unitOfWork.SaveChangesAsync();
-            throw new InvalidRefreshTokenException();
+            throw new InvalidRefreshTokenException(); //TODO: think of what to do with InvalidRefreshTokenException
         }
 
         var user = token?.User;
@@ -75,6 +74,7 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         });
+
         await _unitOfWork.SaveChangesAsync();
 
         var accessToken = _tokenService.CreateToken(user.Id, user.Username);

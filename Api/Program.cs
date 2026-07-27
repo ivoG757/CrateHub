@@ -48,6 +48,8 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IUrlProvider, UrlProvider>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 
+builder.Services.AddHostedService<FileCleanupService>();
+
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

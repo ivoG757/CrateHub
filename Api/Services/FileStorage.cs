@@ -13,9 +13,9 @@ public class FileStorage : IFileStorage
         Directory.CreateDirectory(_basePath);
     }
 
-    public Task DeleteAsync(string path)
+    public void Delete(string path)
     {
-        throw new NotImplementedException();
+        File.Delete(path);
     }
 
     public Stream OpenRead(string path)
