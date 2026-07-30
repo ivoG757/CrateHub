@@ -18,8 +18,8 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponseDto>> Refresh(RefreshTokenDto dto)
     {
+        Console.WriteLine($"REFRESH REQUEST: {dto.Token}");
         var tokens = await _authService.RefreshAsync(dto);
-
         return Ok(tokens);
     }
 
