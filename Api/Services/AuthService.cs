@@ -14,21 +14,30 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRep;
     private readonly IRefreshTokenRepository _refTokenRepository;
-    public AuthService(IUserRepository userRep, IRefreshTokenRepository tokenRepository, ITokenService tokenService, IPasswordHasher<User> hasher, IUnitOfWork unitOfWOrk)
+    private readonly ILogger<AuthService> _logger;
+    public AuthService(IUserRepository userRep,
+     IRefreshTokenRepository tokenRepository,
+      ITokenService tokenService,
+       IPasswordHasher<User> hasher,
+        IUnitOfWork unitOfWOrk,
+        ILogger<AuthService> logger)
     {
         _unitOfWork = unitOfWOrk;
         _tokenService = tokenService;
         _userRep = userRep;
         _hasher = hasher;
         _refTokenRepository = tokenRepository;
+        _logger = logger;
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
         var user = await _userRep.GetUserByNameAsync(dto.Username);
-
         if (user == null)
         {
+            _logger.LogWarning(
+                "Failed login attempt for username {Username}: user not found",
+                dto.Username);
             throw new InvalidCredentialsException();
         }
 
@@ -36,9 +45,15 @@ public class AuthService : IAuthService
 
         if (result == PasswordVerificationResult.Failed)
         {
+            _logger.LogWarning(
+                "Failed login attempt: invalid password");
             throw new InvalidCredentialsException();
         }
-        return await CreateAuthResponseAsync(user);
+        var response = await CreateAuthResponseAsync(user);
+
+        _logger.LogInformation("User {Username} with id: {Id} logged in successfully", user.Username, user.Id);
+
+        return response;
     }
 
     public async Task<AuthResponseDto> RefreshAsync(RefreshTokenDto dto)
@@ -47,12 +62,16 @@ public class AuthService : IAuthService
 
         if (token is null)
         {
+            _logger.LogWarning(
+                "Refresh token rotation failed: token was invalid or not found");
             throw new InvalidRefreshTokenException();
         }
         if (token.ExpiresAt < DateTime.UtcNow)
         {
             _refTokenRepository.Delete(token);
             await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogWarning("Refresh token rotation failed: token was expired.");
             throw new InvalidRefreshTokenException(); //TODO: think of what to do with InvalidRefreshTokenException
         }
 
@@ -60,6 +79,7 @@ public class AuthService : IAuthService
 
         if (user is null)
         {
+            _logger.LogWarning("Refresh token rotation failed: user does not exist.");
             throw new InvalidRefreshTokenException();
         }
 
@@ -79,22 +99,35 @@ public class AuthService : IAuthService
 
         var accessToken = _tokenService.CreateToken(user.Id, user.Username);
 
-        return new AuthResponseDto
+        var response = new AuthResponseDto
         {
             AccessToken = accessToken,
             RefreshToken = newRefreshToken
         };
+
+        _logger.LogInformation(
+            "Refresh token rotated for user {Username} with id: {Id}",
+             user.Username, user.Id);
+
+        return response;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
         if (await _userRep.UserWithEmailExistsAsync(dto.Email))
         {
+            _logger.LogWarning(
+                "Registration failed: email {Email} already exists",
+                dto.Email);
+
             throw new EmailAlreadyExistsException();
         }
 
         if (await _userRep.UserWithNameExistsAsync(dto.Username))
         {
+            _logger.LogWarning(
+               "Registration failed: username {Username} already exists",
+               dto.Username);
             throw new UsernameAlreadyExistsException();
         }
 
@@ -110,10 +143,20 @@ public class AuthService : IAuthService
 
         await _unitOfWork.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "User registered successfully with id {UserId}",
+            savedUser.Id);
+
         return await CreateAuthResponseAsync(savedUser);
     }
     private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)
     {
+        await _unitOfWork.SaveChangesAsync();
+        _logger.LogDebug(
+        "Creating authentication response for user {UserId}",
+        user.Id);
+
+
         var accessToken = _tokenService.CreateToken(user.Id, user.Username);
 
         var refreshToken = _tokenService.CreateRefreshToken();
@@ -130,8 +173,6 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         });
-        await _unitOfWork.SaveChangesAsync();
-
         return new AuthResponseDto
         {
             AccessToken = accessToken,

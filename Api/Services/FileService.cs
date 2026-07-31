@@ -3,6 +3,7 @@ using Api.Repository.Interfaces;
 using Api.Services.Interfaces;
 using static Api.Utils.Constants.FileConstants;
 using Api.Exceptions;
+using Microsoft.VisualBasic;
 
 namespace Api.Services;
 
@@ -13,17 +14,19 @@ public class FileService : IFileService
     private readonly IShareTokenGenerator _shareTokenGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUrlProvider _urlProvider;
-
+    private readonly ILogger<FileService> _logger;
     public FileService(IFileRepository fileRepository,
      IFileStorage fileStorage,
       IShareTokenGenerator shareTokenGenerator,
-       IUnitOfWork unitOfWork, IUrlProvider urlProvider)
+       IUnitOfWork unitOfWork, IUrlProvider urlProvider,
+       ILogger<FileService> logger)
     {
         _fileRepository = fileRepository;
         _fileStorage = fileStorage;
         _shareTokenGenerator = shareTokenGenerator;
         _unitOfWork = unitOfWork;
         _urlProvider = urlProvider;
+        _logger = logger;
     }
 
     public async Task<FileDto> UploadAsync(IFormFile file, int userId)
@@ -57,8 +60,7 @@ public class FileService : IFileService
 
             await _unitOfWork.SaveChangesAsync();
 
-
-            return new FileDto
+            var fileDto = new FileDto
             {
                 Id = entry.Id,
                 FileName = entry.Name,
@@ -68,26 +70,38 @@ public class FileService : IFileService
                 UploadedAt = entry.UploadedAt,
                 FileType = entry.ContentType
             };
+
+            _logger.LogInformation("User {userId} successfully uploaded file with id: {Id}.", userId, fileDto.Id);
+
+            return fileDto;
         }
-        catch
+        catch (Exception ex)
         {
             if (path != null)
             {
                 _fileStorage.Delete(path);
             }
 
+            _logger.LogError(
+                ex,
+                "Failed to upload file for user {UserId}.",
+                userId);
+
+
             throw;
         }
     }
-    private static void FileValidate(IFormFile file)
+    private void FileValidate(IFormFile file)
     {
         if (file == null || file.Length == 0)
         {
+            _logger.LogWarning("Could not uplaod file: the file could not be found or it doesn't exit.");
             throw new FileFormatNotSupportedException();
         }
 
         if (file.Length > FileLengthLimit)
         {
+            _logger.LogWarning("Could not uplaod file: the file is too large.");
             throw new FileTooLargeException();
         }
 
@@ -96,6 +110,7 @@ public class FileService : IFileService
         if (string.IsNullOrWhiteSpace(extension) ||
         ForbiddenExtensions.Contains(extension))
         {
+            _logger.LogWarning("Could not uplaod file: selected file's format is not supported.");
             throw new FileFormatNotSupportedException();
         }
     }
@@ -106,6 +121,7 @@ public class FileService : IFileService
 
         if (fileToDelete == null)
         {
+            _logger.LogWarning("Could not uplaod file: the file could not be found or it doesn't exit.");
             throw new FileNotFoundException("File not found");
         }
 
