@@ -29,7 +29,7 @@ export default function DashboardPage() {
 
         loadFiles();
     }, []);
-    
+
 
     async function removeFile(id)
     {
@@ -77,6 +77,11 @@ export default function DashboardPage() {
         }
     }
 
+    function getShareUrl(token)
+    {
+        return `${window.location.origin}/shared/${token}`;
+    }
+
     async function copyLink(url) {
         try {
             await navigator.clipboard.writeText(url);
@@ -112,7 +117,7 @@ export default function DashboardPage() {
                             <p>Expires: {file.expiresAt}</p>
 
                             <button
-                                onClick={() => copyLink(file.downloadUrl)}
+                                onClick={() => copyLink(getShareUrl(file.shareToken))}
                             >
                                 Copy Link
                             </button>

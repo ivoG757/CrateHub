@@ -23,6 +23,26 @@ export async function uploadFile(token, file) {
 
     return data;
 }
+export async function downloadFile(shareToken) 
+{
+    window.location.href =
+        `http://localhost:5127/api/files/download/${shareToken}`;
+
+}
+export async function fileInfo(shareToken) {
+    const response = await fetch(
+        `http://localhost:5127/api/files/share/${shareToken}`,
+    );
+
+    if (!response.ok) 
+    {
+        throw new Error("Failed to fetch file info");
+    }
+
+    const fileInfo = await response.json();
+    console.log(fileInfo);
+    return fileInfo;
+}
 
 export async function loadFiles(token) {
     const response = await fetch("http://localhost:5127/api/files", {

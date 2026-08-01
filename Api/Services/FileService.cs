@@ -138,7 +138,7 @@ public class FileService : IFileService
         {
             _logger.LogError(
                 ex,
-                "Failed to remove file database entry. FileId: {FileId}",
+                "Failed to remove file database entry. FileEntryId: {FileId}",
                 fileId);
 
             throw;
