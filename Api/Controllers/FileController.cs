@@ -47,7 +47,23 @@ public class FileController : ControllerBase
 
         return NoContent();
     }
-    public int GetUserId()
+
+    [HttpGet("share/{token}")]
+    public async Task<IActionResult> Share(string token)
+    {
+        var dto = await _fileService.GetShareInfoAsync(token);
+
+        return Ok(dto);
+    }
+
+    [HttpGet("download/{token}")]
+    public async Task<IActionResult> Download(string token)
+    {
+        var dto = await _fileService.DownloadAsync(token);
+        return File(dto.Stream, dto.ContentType, dto.FileName);
+    }
+
+    private int GetUserId()
     {
         return int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
     }

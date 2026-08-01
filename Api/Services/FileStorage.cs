@@ -18,9 +18,24 @@ public class FileStorage : IFileStorage
         File.Delete(path);
     }
 
-    public Stream OpenRead(string path)
+    public bool Exists(string path)
     {
-        throw new NotImplementedException();
+        return File.Exists(path);
+    }
+
+    public Stream GetStream(string path)
+    {
+
+        var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: buffer,
+            useAsync: true
+        );
+
+        return stream;
     }
 
     public async Task<string> SaveAsync(IFormFile file, int userId)

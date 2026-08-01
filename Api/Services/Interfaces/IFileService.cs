@@ -6,4 +6,6 @@ public interface IFileService
     public Task<FileDto> UploadAsync(IFormFile file, int userId);
     public Task<ICollection<FileDto>> GetFilesAsync(int userId);
     public Task DeleteAsync(int fileId, int userId);
+    public Task<FileDto?> GetShareInfoAsync(string token);
+    public Task<DownloadFileDto> DownloadAsync(string token);
 }

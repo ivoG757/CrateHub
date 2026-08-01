@@ -5,5 +5,5 @@ namespace Api.Data.Dtos;
 public class RefreshTokenDto
 {
     [Required]
-    public string Token { get; set; } = null!;
+    public string Token { get; init; } = null!;
 }

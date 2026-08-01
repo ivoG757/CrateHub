@@ -6,13 +6,13 @@ public class RegisterDto
 {
     [Required]
     [StringLength(maximumLength: MaxLengthForUsername, MinimumLength = MinLengthForUsername)]
-    public string Username { get; set; } = null!;
+    public string Username { get; init; } = null!;
 
     [Required]
     [StringLength(maximumLength: MaxLengthForPassword, MinimumLength = MinLengthForPassword)]
-    public string Password { get; set; } = null!;
+    public string Password { get; init; } = null!;
 
     [Required]
     [EmailAddress]
-    public string Email { get; set; } = null!;
+    public string Email { get; init; } = null!;
 }

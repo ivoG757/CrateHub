@@ -95,13 +95,13 @@ public class FileService : IFileService
     {
         if (file == null || file.Length == 0)
         {
-            _logger.LogWarning("Could not uplaod file: the file could not be found or it doesn't exit.");
+            _logger.LogWarning("Could not upload file: the file could not be found or it doesn't exist.");
             throw new FileFormatNotSupportedException();
         }
 
         if (file.Length > FileLengthLimit)
         {
-            _logger.LogWarning("Could not uplaod file: the file is too large.");
+            _logger.LogWarning("Could not upload file: the file is too large.");
             throw new FileTooLargeException();
         }
 
@@ -110,7 +110,7 @@ public class FileService : IFileService
         if (string.IsNullOrWhiteSpace(extension) ||
         ForbiddenExtensions.Contains(extension))
         {
-            _logger.LogWarning("Could not uplaod file: selected file's format is not supported.");
+            _logger.LogWarning("Could not upload file: selected file's format is not supported.");
             throw new FileFormatNotSupportedException();
         }
     }
@@ -121,7 +121,7 @@ public class FileService : IFileService
 
         if (fileToDelete == null)
         {
-            _logger.LogWarning("Could not uplaod file: the file could not be found or it doesn't exit.");
+            _logger.LogWarning("Could not delete file: the file could not be found or it doesn't exist.");
             throw new FileNotFoundException("File not found");
         }
 
@@ -145,5 +145,72 @@ public class FileService : IFileService
             ExpiresAt = f.ExpiresAt
 
         }).ToArray();
+    }
+
+    public async Task<FileDto?> GetShareInfoAsync(string token)
+    {
+        var fileEntry = await _fileRepository.GetByPublicTokenAsync(token);
+
+        if (fileEntry == null)
+        {
+            _logger.LogWarning("Could not retrieve share info: the file could not be found or it doesn't exist.");
+            throw new FileNotFoundException("File not found");
+        }
+
+        if (fileEntry.ExpiresAt < DateTime.UtcNow)
+        {
+            _logger.LogWarning("Could not retrieve share info: the file has expired.");
+            throw new FileExpiredException();
+        }
+
+        return new FileDto
+        {
+            Id = fileEntry.Id,
+            FileName = fileEntry.Name,
+            FileType = fileEntry.ContentType,
+            FileSize = fileEntry.Size,
+            DownloadUrl = _urlProvider.Create(fileEntry.ShareToken),
+            UploadedAt = fileEntry.UploadedAt,
+            ExpiresAt = fileEntry.ExpiresAt
+        };
+    }
+
+    public async Task<DownloadFileDto> DownloadAsync(string token)
+    {
+        var fileEntry = await _fileRepository.GetByPublicTokenAsync(token);
+
+        if (fileEntry == null)
+        {
+            _logger.LogWarning("Could not download file: the file could not be found or it doesn't exist.");
+            throw new FileNotFoundException("File not found");
+        }
+
+        if (fileEntry.ExpiresAt < DateTime.UtcNow)
+        {
+            _logger.LogWarning("Could not download file: the file has expired.");
+            throw new FileExpiredException();
+        }
+
+        if (!_fileStorage.Exists(fileEntry.Path))
+        {
+            _logger.LogWarning("Could not download file: the file could not be found or it doesn't exist.");
+            throw new FileNotFoundException("File not found");
+        }
+
+        var stream = _fileStorage.GetStream(fileEntry.Path);
+
+        var downloadFileDto = new DownloadFileDto
+        {
+            Stream = stream,
+            ContentType = fileEntry.ContentType,
+            FileName = fileEntry.Name
+        };
+
+        _logger.LogInformation(
+            "File {FileId} was streamed successfully. Filename: {FileName}",
+            fileEntry.Id,
+            fileEntry.Name);
+
+        return downloadFileDto;
     }
 }
