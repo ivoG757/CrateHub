@@ -3,7 +3,6 @@ using Api.Repository.Interfaces;
 using Api.Services.Interfaces;
 using static Api.Utils.Constants.FileConstants;
 using Api.Exceptions;
-using Microsoft.VisualBasic;
 
 namespace Api.Services;
 
@@ -13,25 +12,23 @@ public class FileService : IFileService
     private readonly IFileStorage _fileStorage;
     private readonly IShareTokenGenerator _shareTokenGenerator;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IUrlProvider _urlProvider;
     private readonly ILogger<FileService> _logger;
     public FileService(IFileRepository fileRepository,
      IFileStorage fileStorage,
       IShareTokenGenerator shareTokenGenerator,
-       IUnitOfWork unitOfWork, IUrlProvider urlProvider,
+       IUnitOfWork unitOfWork,
        ILogger<FileService> logger)
     {
         _fileRepository = fileRepository;
         _fileStorage = fileStorage;
         _shareTokenGenerator = shareTokenGenerator;
         _unitOfWork = unitOfWork;
-        _urlProvider = urlProvider;
         _logger = logger;
     }
 
     public async Task<FileDto> UploadAsync(IFormFile file, int userId)
     {
-        Console.WriteLine($"Uploading for user {userId}");
+        _logger.LogInformation("Uploading file for user {UserId}", userId);
 
         string? path = null;
 
@@ -60,16 +57,7 @@ public class FileService : IFileService
 
             await _unitOfWork.SaveChangesAsync();
 
-            var fileDto = new FileDto
-            {
-                Id = entry.Id,
-                FileName = entry.Name,
-                FileSize = entry.Size,
-                DownloadUrl = _urlProvider.Create(entry.ShareToken),
-                ExpiresAt = entry.ExpiresAt,
-                UploadedAt = entry.UploadedAt,
-                FileType = entry.ContentType
-            };
+            var fileDto = MapToFileDto(entry);
 
             _logger.LogInformation("User {userId} successfully uploaded file with id: {Id}.", userId, fileDto.Id);
 
@@ -124,27 +112,50 @@ public class FileService : IFileService
             _logger.LogWarning("Could not delete file: the file could not be found or it doesn't exist.");
             throw new FileNotFoundException("File not found");
         }
+        try
+        {
+            _fileStorage.Delete(fileToDelete.Path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to delete file from storage for user {UserId}. FileId: {FileId}",
+                userId,
+                fileId);
+
+            throw;
+        }
 
         _fileRepository.Delete(fileToDelete);
-        _fileStorage.Delete(fileToDelete.Path);
-        await _unitOfWork.SaveChangesAsync();
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to remove file database entry. FileId: {FileId}",
+                fileId);
+
+            throw;
+        }
+
+        _logger.LogInformation(
+            "User {UserId} deleted file {FileId} ({FileName})",
+            userId,
+            fileToDelete.Id,
+            fileToDelete.Name);
     }
 
     public async Task<ICollection<FileDto>> GetFilesAsync(int userId)
     {
         var files = await _fileRepository.GetFilesAsync(userId);
 
-        return files.Select(f => new FileDto
-        {
-            Id = f.Id,
-            FileName = f.Name,
-            FileType = f.ContentType,
-            FileSize = f.Size,
-            DownloadUrl = _urlProvider.Create(f.ShareToken),
-            UploadedAt = f.UploadedAt,
-            ExpiresAt = f.ExpiresAt
-
-        }).ToArray();
+        return files.Select(f => MapToFileDto(f)).ToArray();
     }
 
     public async Task<FileDto?> GetShareInfoAsync(string token)
@@ -163,16 +174,9 @@ public class FileService : IFileService
             throw new FileExpiredException();
         }
 
-        return new FileDto
-        {
-            Id = fileEntry.Id,
-            FileName = fileEntry.Name,
-            FileType = fileEntry.ContentType,
-            FileSize = fileEntry.Size,
-            DownloadUrl = _urlProvider.Create(fileEntry.ShareToken),
-            UploadedAt = fileEntry.UploadedAt,
-            ExpiresAt = fileEntry.ExpiresAt
-        };
+        var fileDto = MapToFileDto(fileEntry);
+
+        return fileDto;
     }
 
     public async Task<DownloadFileDto> DownloadAsync(string token)
@@ -212,5 +216,18 @@ public class FileService : IFileService
             fileEntry.Name);
 
         return downloadFileDto;
+    }
+    private static FileDto MapToFileDto(FileEntry entry)
+    {
+        return new FileDto
+        {
+            Id = entry.Id,
+            FileName = entry.Name,
+            FileType = entry.ContentType,
+            FileSize = entry.Size,
+            ShareToken = entry.ShareToken,
+            UploadedAt = entry.UploadedAt,
+            ExpiresAt = entry.ExpiresAt
+        };
     }
 }

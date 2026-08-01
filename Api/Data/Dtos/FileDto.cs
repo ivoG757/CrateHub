@@ -9,7 +9,7 @@ public class FileDto
     public string FileType { get; set; } = null!;
 
     public long FileSize { get; set; }
-    public string DownloadUrl { get; set; } = null!;
+    public string ShareToken { get; set; } = null!;
 
     public DateTime UploadedAt { get; set; }
 
