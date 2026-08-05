@@ -3,6 +3,7 @@ using Api.Services.Interfaces;
 
 namespace Api.Middleware;
 
+[Obsolete("This middleware is deprecated. Use the GlobalExceptionHandler instead.", false)]
 public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;

@@ -35,6 +35,7 @@ builder.Services.AddScoped<IShareTokenGenerator, ShareTokenGenerator>();
 builder.Services.AddScoped<IFileStorage, FileStorage>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 
 builder.Services.AddHostedService<FileCleanupService>();
@@ -95,8 +96,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.UseMiddleware<ExceptionMiddleware>();
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
