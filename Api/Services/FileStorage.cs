@@ -25,7 +25,6 @@ public class FileStorage : IFileStorage
 
     public Stream GetStream(string path)
     {
-
         var stream = new FileStream(
             path,
             FileMode.Open,

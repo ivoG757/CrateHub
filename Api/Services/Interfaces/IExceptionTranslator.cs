@@ -6,5 +6,5 @@ public interface IExceptionTranslator
 {
     int GetStatusCode(Exception exception);
     string GetErrorCode(Exception exception);
-    bool IsKnown(Exception exception);
+    string GetErrorMessage(Exception exception);
 }

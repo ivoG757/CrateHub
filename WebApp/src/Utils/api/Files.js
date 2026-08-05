@@ -1,4 +1,6 @@
-export async function uploadFile(token, file) {
+import {authFetch} from "./apiClient.js";
+
+export async function uploadNewFile(file) {
     if (!file) {
         throw new Error("no file selected");
     }
@@ -6,19 +8,18 @@ export async function uploadFile(token, file) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("http://localhost:5127/api/files/upload", {
+    const response = await authFetch("http://localhost:5127/api/files/upload", {
         method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-
         body: formData,
     });
 
-    const data = await response.json();
+    const data = await tryParseResponse(response);
+    
     console.log(response);
-    if (!response.ok) {
-        throw new Error(data.message);
+
+    if (!response.ok) 
+    {
+        throw new Error(data?.message || "Upload failed");
     }
 
     return data;
@@ -30,47 +31,52 @@ export async function downloadFile(shareToken)
 
 }
 export async function fileInfo(shareToken) {
-    const response = await fetch(
-        `http://localhost:5127/api/files/share/${shareToken}`,
+    const response = await authFetch(
+        `http://localhost:5127/api/files/share/${shareToken}`, {}
     );
+    const data = await tryParseResponse(response);
 
     if (!response.ok) 
     {
-        throw new Error("Failed to fetch file info");
+        throw new Error(data?.message || "Failed to fetch file info");
     }
 
-    const fileInfo = await response.json();
-    console.log(fileInfo);
-    return fileInfo;
+    console.log(data);
+
+    return data;
 }
 
-export async function loadFiles(token) {
-    const response = await fetch("http://localhost:5127/api/files", {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+export async function loadMyFiles() {
+    const response = await authFetch("http://localhost:5127/api/files", {
+        method: "GET"
     });
-    const data = await response.json();
+    const data = await tryParseResponse(response);
     console.log(response);
     if (!response.ok) {
-        throw new Error(data.message);
+        throw new Error(data?.message || "Failed to load files");
     }
 
     return data;
 }
-export async function deleteFile(token, id) {
-    const response = await fetch(`http://localhost:5127/api/files/${id}`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+export async function deleteMyFile(id) {
+    const response = await authFetch(`http://localhost:5127/api/files/${id}`, {
+        method: "DELETE"
     });
     console.log(response);
     if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message);
+        throw new Error("Failed to delete file");
     }
 
     return true;
+}
+async function tryParseResponse(response)
+{
+    try
+    {
+        return await response.json();
+    }
+    catch
+    {
+        return null;
+    }
 }

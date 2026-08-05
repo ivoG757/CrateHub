@@ -13,27 +13,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using static Api.Utils.Constants.FileConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
-    options.InvalidModelStateResponseFactory = context =>
-    {
-        var errors = context.ModelState.Where(e => e.Value!.Errors.Count > 0);
-
-        return new BadRequestObjectResult(new ErrorResponse
-        {
-            Code = "VALIDATION_ERROR",
-            Errors = errors
-          .ToDictionary(e => e.Key, e => e.Value!.Errors
-          .Select(error => error.ErrorMessage)
-          .ToArray()),
-            Message = "One or more fields failed validation"
-        });
-    };
+    options.InvalidModelStateResponseFactory = context => ValidationResponseFactory.Create(context);
 });
+
 builder.Services.AddScoped<IExceptionTranslator, ExceptionTranslator>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -46,6 +35,7 @@ builder.Services.AddScoped<IShareTokenGenerator, ShareTokenGenerator>();
 builder.Services.AddScoped<IFileStorage, FileStorage>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
+
 
 builder.Services.AddHostedService<FileCleanupService>();
 
@@ -91,6 +81,11 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = FileLengthLimit;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -12,6 +12,7 @@ namespace Api.Services.ExceptionHandling
                 EmailAlreadyExistsException => Status409Conflict,
                 UsernameAlreadyExistsException => Status409Conflict,
                 InvalidCredentialsException => Status401Unauthorized,
+                BadHttpRequestException => Status413PayloadTooLarge,
                 _ => Status500InternalServerError
             };
         }
@@ -23,11 +24,25 @@ namespace Api.Services.ExceptionHandling
                 EmailAlreadyExistsException => "EMAIL_ALREADY_EXISTS",
                 UsernameAlreadyExistsException => "USERNAME_ALREADY_EXISTS",
                 InvalidCredentialsException => "INVALID_CREDENTIALS",
+                BadHttpRequestException => "FILE_TOO_LARGE",
                 _ => "INTERNAL_ERROR"
             };
         }
 
-        public bool IsKnown(Exception exception)
+        public string GetErrorMessage(Exception exception)
+        {
+            if (IsKnown(exception))
+            {
+                return exception.Message;
+            }
+
+            return exception switch
+            {
+                BadHttpRequestException => $"The uploaded file exceeds the maximum allowed size",
+                _ => "An unexpected error occurred."
+            };
+        }
+        private bool IsKnown(Exception exception)
         {
             return exception is AppException;
         }

@@ -33,6 +33,7 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
         var user = await _userRep.GetUserByNameAsync(dto.Username);
+
         if (user == null)
         {
             _logger.LogWarning(
@@ -49,7 +50,7 @@ public class AuthService : IAuthService
                 "Failed login attempt: invalid password");
             throw new InvalidCredentialsException();
         }
-        var response = await CreateAuthResponseAsync(user);
+        var response = await TokenCycleResponseAsync(user);
 
         _logger.LogInformation("User {Username} with id: {Id} logged in successfully", user.Username, user.Id);
 
@@ -66,15 +67,16 @@ public class AuthService : IAuthService
                 "Refresh token rotation failed: token was invalid or not found");
             throw new InvalidRefreshTokenException();
         }
+
         if (token.ExpiresAt < DateTime.UtcNow)
         {
             _refTokenRepository.Delete(token);
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogWarning("Refresh token rotation failed: token was expired.");
+
             throw new InvalidRefreshTokenException(); //TODO: think of what to do with InvalidRefreshTokenException
         }
-
         var user = token?.User;
 
         if (user is null)
@@ -82,28 +84,11 @@ public class AuthService : IAuthService
             _logger.LogWarning("Refresh token rotation failed: user does not exist.");
             throw new InvalidRefreshTokenException();
         }
-
-        var newRefreshToken = _tokenService.CreateRefreshToken();
-
         _refTokenRepository.Delete(token!);
+        // Delete the old refresh token to prevent reuse (refresh token rotation)
 
-        await _refTokenRepository.AddAsync(new RefreshToken
-        {
-            UserId = user.Id,
-            Token = newRefreshToken,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
-        });
+        var response = await TokenCycleResponseAsync(user);
 
-        await _unitOfWork.SaveChangesAsync();
-
-        var accessToken = _tokenService.CreateToken(user.Id, user.Username);
-
-        var response = new AuthResponseDto
-        {
-            AccessToken = accessToken,
-            RefreshToken = newRefreshToken
-        };
 
         _logger.LogInformation(
             "Refresh token rotated for user {Username} with id: {Id}",
@@ -141,17 +126,19 @@ public class AuthService : IAuthService
 
         var savedUser = await _userRep.AddAsync(user);
 
-        await _unitOfWork.SaveChangesAsync();
+        var response = await TokenCycleResponseAsync(savedUser);
 
         _logger.LogInformation(
             "User registered successfully with id {UserId}",
             savedUser.Id);
 
-        return await CreateAuthResponseAsync(savedUser);
+        return response;
     }
-    private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)
+    private async Task<AuthResponseDto> TokenCycleResponseAsync(User user)
     {
         await _unitOfWork.SaveChangesAsync();
+        // to ensure that any changes to the user or refresh tokens are persisted before creating the auth response
+
         _logger.LogDebug(
         "Creating authentication response for user {UserId}",
         user.Id);
@@ -161,10 +148,9 @@ public class AuthService : IAuthService
 
         var refreshToken = _tokenService.CreateRefreshToken();
 
-        foreach (var token in user.RefreshTokens.Where(t => t.ExpiresAt < DateTime.UtcNow))
-        {
-            _refTokenRepository.Delete(token);
-        }
+        await RemoveExpiredTokensAsync(user);
+        // Remove expired tokens before adding a new one to prevent token accumulation 
+        // or atleast to keep the number of tokens manageable...
 
         await _refTokenRepository.AddAsync(new RefreshToken
         {
@@ -173,10 +159,22 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         });
+
+        await _unitOfWork.SaveChangesAsync();
+
         return new AuthResponseDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken
         };
+    }
+    private async Task RemoveExpiredTokensAsync(User user)
+    {
+        var expiredTokens = await _userRep.GetExpiredUsersTokens(user.Id);
+
+        foreach (var token in expiredTokens)
+        {
+            _refTokenRepository.Delete(token);
+        }
     }
 }

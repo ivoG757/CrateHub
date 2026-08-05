@@ -24,16 +24,15 @@ public class ExceptionMiddleware
 
         catch (Exception ex)
         {
+
+            var message = translator.GetErrorMessage(ex);
+            var code = translator.GetErrorCode(ex);
+
             var response = new ErrorResponse
             {
-                Code = translator.GetErrorCode(ex),
-                Message = translator.IsKnown(ex) ? ex.Message : "Internal server error."
+                Code = code,
+                Message = message
             };
-            _logger.LogError(
-                ex,
-                "Unhandled exception while processing {Method} {Path}",
-                context.Request.Method,
-                context.Request.Path);
 
             context.Response.StatusCode = translator.GetStatusCode(ex);
             context.Response.ContentType = "application/json";

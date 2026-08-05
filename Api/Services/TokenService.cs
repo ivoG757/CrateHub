@@ -32,11 +32,12 @@ public class TokenService : ITokenService
         var token = new JwtSecurityToken(issuer: _configuration["Jwt:Issuer"],
         audience: _configuration["Jwt:Audience"],
         claims: claims,
-        expires: DateTime.Now.AddMinutes(15),
+        expires: DateTime.Now.AddMinutes(15), // TODO: Put the expiration time in constants file and use it here
         signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
     public string CreateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytesLength));

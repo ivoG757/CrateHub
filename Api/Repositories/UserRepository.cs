@@ -39,4 +39,11 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.AnyAsync(u => u.Username == name);
     }
+
+    public async Task<ICollection<RefreshToken>> GetExpiredUsersTokens(int userId)
+    {
+        return await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.ExpiresAt < DateTime.UtcNow)
+            .ToListAsync();
+    }
 }

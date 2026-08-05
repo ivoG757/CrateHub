@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../Utils/AuthContext";
-import useAuthenticatedApi from "../Utils/AuthenticationApi.jsx";
+import { loadMyFiles, uploadNewFile, deleteMyFile } from "../utils/api/Files.js"
 
 export default function DashboardPage() {
-    const api = useAuthenticatedApi();
     const { user, logout } = useAuth();
 
     const [files, setFiles] = useState([]);
@@ -18,7 +17,7 @@ export default function DashboardPage() {
         async function loadFiles() {
             try 
             {
-                const result = await api.loadMyFiles();
+                const result = await loadMyFiles();
                 setFiles(result);
             }
             catch (err) 
@@ -37,7 +36,7 @@ export default function DashboardPage() {
 
         try
         {
-            await api.deleteMyFile(id);
+            await deleteMyFile(id);
 
             setFiles(current =>
                 current.filter(file => file.id !== id)
@@ -58,7 +57,7 @@ export default function DashboardPage() {
         setError("");
 
         try {
-            const newFile = await api.uploadNewFile(uploadedFile);
+            const newFile = await uploadNewFile(uploadedFile);
 
             setFiles(current => [...current, newFile]);
 

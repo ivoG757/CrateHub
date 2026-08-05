@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Api.Services.Interfaces;
-using Api.Data.Dtos;
+using static Api.Utils.Constants.FileConstants;
 namespace Api.Controllers;
 
 [ApiController]
@@ -17,6 +17,7 @@ public class FileController : ControllerBase
 
     [Authorize]
     [HttpPost("upload")]
+    [RequestSizeLimit(FileLengthLimit)]
     public async Task<IActionResult> Upload(IFormFile file)
     {
         var userId = GetUserId();

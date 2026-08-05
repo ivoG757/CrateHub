@@ -9,4 +9,5 @@ public interface IUserRepository
     public Task<User?> GetUserByIdAsync(int id);
     public Task<User?> GetUserByNameAsync(string name);
     public Task<User> AddAsync(User user);
+    public Task<ICollection<RefreshToken>> GetExpiredUsersTokens(int userId);
 }
