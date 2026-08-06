@@ -1,7 +1,7 @@
 using Api.Data.Dtos;
 using Api.Repository.Interfaces;
 using Api.Services.Interfaces;
-using static Api.Utils.Constants.FileConstants;
+using static Api.Utils.Constants;
 using Api.Exceptions;
 
 namespace Api.Services;
@@ -87,7 +87,7 @@ public class FileService : IFileService
             throw new FileFormatNotSupportedException();
         }
 
-        if (file.Length > FileLengthLimit)
+        if (file.Length > Files.MaxSize)
         {
             _logger.LogWarning("Could not upload file: the file is too large.");
             throw new FileTooLargeException();
@@ -96,7 +96,7 @@ public class FileService : IFileService
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
         if (string.IsNullOrWhiteSpace(extension) ||
-        ForbiddenExtensions.Contains(extension))
+        Files.ForbiddenExtensions.Contains(extension))
         {
             _logger.LogWarning("Could not upload file: selected file's format is not supported.");
             throw new FileFormatNotSupportedException();

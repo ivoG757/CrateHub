@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using static Api.Utils.Constants.FileConstants;
+using static Api.Utils.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,11 +84,11 @@ builder.Services.AddCors(options =>
 });
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = FileLengthLimit;
+    options.Limits.MaxRequestBodySize = Files.MaxSize;
 });
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = FileLengthLimit;
+    options.MultipartBodyLengthLimit = Files.MaxSize;
 });
 
 var app = builder.Build();

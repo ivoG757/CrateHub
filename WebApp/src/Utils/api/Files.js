@@ -1,5 +1,5 @@
 import {authFetch} from "./apiClient.js";
-
+import {API_BASE_URL} from "../../config/constants.js";
 export async function uploadNewFile(file) {
     if (!file) {
         throw new Error("no file selected");
@@ -8,7 +8,7 @@ export async function uploadNewFile(file) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await authFetch("http://localhost:5127/api/files/upload", {
+    const response = await authFetch(`${API_BASE_URL}/api/files/upload`, {
         method: "POST",
         body: formData,
     });
@@ -27,12 +27,12 @@ export async function uploadNewFile(file) {
 export async function downloadFile(shareToken) 
 {
     window.location.href =
-        `http://localhost:5127/api/files/download/${shareToken}`;
+        `${API_BASE_URL}/api/files/download/${shareToken}`;
 
 }
 export async function fileInfo(shareToken) {
     const response = await authFetch(
-        `http://localhost:5127/api/files/share/${shareToken}`, {}
+        `${API_BASE_URL}/api/files/share/${shareToken}`, {}
     );
     const data = await tryParseResponse(response);
 
@@ -47,7 +47,7 @@ export async function fileInfo(shareToken) {
 }
 
 export async function loadMyFiles() {
-    const response = await authFetch("http://localhost:5127/api/files", {
+    const response = await authFetch(`${API_BASE_URL}/api/files`, {
         method: "GET"
     });
     const data = await tryParseResponse(response);
@@ -59,7 +59,7 @@ export async function loadMyFiles() {
     return data;
 }
 export async function deleteMyFile(id) {
-    const response = await authFetch(`http://localhost:5127/api/files/${id}`, {
+    const response = await authFetch(`${API_BASE_URL}/api/files/${id}`, {
         method: "DELETE"
     });
     console.log(response);

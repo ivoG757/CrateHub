@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using static Api.Utils.Constants.UserConstants;
+using static Api.Utils.Constants.Validation;
 namespace Api.Data.Models;
 
 public class User
@@ -8,7 +8,7 @@ public class User
     public int Id { get; set; }
 
     [Required]
-    [StringLength(MaxLengthForUsername, MinimumLength = MinLengthForUsername)]
+    [StringLength(UsernameMaxLength, MinimumLength = UsernameMinLength)]
     public string Username { get; set; } = null!;
 
     [Required]

@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Api.Services.Interfaces;
-using static Api.Utils.Constants.RefreshTokenConstants;
+using static Api.Utils.Constants;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Services;
@@ -40,6 +40,6 @@ public class TokenService : ITokenService
 
     public string CreateRefreshToken()
     {
-        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytesLength));
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshToken.BytesLength));
     }
 }

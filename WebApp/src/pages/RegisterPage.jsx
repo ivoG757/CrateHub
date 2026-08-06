@@ -29,6 +29,12 @@ export default function RegisterPage()
             setError(e.message);
         }
     }
+    function validateForm()
+    {
+        if (!email || !username || !password || !confirmPassword) 
+            {
+        }
+    }
 
     return (
         <div className="register-container">

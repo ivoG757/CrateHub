@@ -1,4 +1,4 @@
-using static Api.Utils.Constants.FileConstants;
+using static Api.Utils.Constants;
 using Api.Services.Interfaces;
 using Api.Repository.Interfaces;
 namespace Api.Services;
@@ -30,7 +30,7 @@ public class FileStorage : IFileStorage
             FileMode.Open,
             FileAccess.Read,
             FileShare.Read,
-            bufferSize: buffer,
+            bufferSize: Files.BufferSize,
             useAsync: true
         );
 
@@ -55,7 +55,7 @@ public class FileStorage : IFileStorage
             FileMode.CreateNew,
             FileAccess.Write,
             FileShare.None,
-            bufferSize: buffer,
+            bufferSize: Files.BufferSize,
             useAsync: true
         );
 

@@ -13,6 +13,7 @@ namespace Api.Services.ExceptionHandling
                 UsernameAlreadyExistsException => Status409Conflict,
                 InvalidCredentialsException => Status401Unauthorized,
                 BadHttpRequestException => Status413PayloadTooLarge,
+                FileNotFoundException => Status404NotFound,
                 _ => Status500InternalServerError
             };
         }
@@ -25,6 +26,7 @@ namespace Api.Services.ExceptionHandling
                 UsernameAlreadyExistsException => "USERNAME_ALREADY_EXISTS",
                 InvalidCredentialsException => "INVALID_CREDENTIALS",
                 BadHttpRequestException => "FILE_TOO_LARGE",
+                FileNotFoundException => "FILE_NOT_FOUND",
                 _ => "INTERNAL_ERROR"
             };
         }
@@ -38,7 +40,7 @@ namespace Api.Services.ExceptionHandling
 
             return exception switch
             {
-                BadHttpRequestException => $"The uploaded file exceeds the maximum allowed size",
+                FileNotFoundException => "The requested file was not found",
                 _ => "An unexpected error occurred."
             };
         }
