@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ProtectedRoute from "./Utils/ProtectedRoute.jsx";
 import SharedFilePage from './pages/SharedFilePage.jsx';
+import LoggedInRoute from './Utils/LoggedInRoute.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,7 +17,10 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={
+          <LoggedInRoute>
+            <LoginPage />
+            </LoggedInRoute>} />
         <Route path="/shared/:shareToken" element={<SharedFilePage />} />
         <Route
           path="/dashboard"
