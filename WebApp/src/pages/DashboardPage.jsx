@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../Utils/AuthContext";
 import { loadMyFiles, uploadNewFile, deleteMyFile } from "../utils/api/Files.js"
+import { MAX_FILE_SIZE } from "../Constants/FileValidation.js";
 
 export default function DashboardPage() {
     const { user, logout } = useAuth();
@@ -29,6 +30,21 @@ export default function DashboardPage() {
         loadFiles();
     }, []);
 
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        setError("");
+
+        if (!file) return;
+
+        if (file.size > MAX_FILE_SIZE) {
+            setError("File is too large. Maximum size is 1 GB.");
+            setUploadedFile(null);
+            event.target.value = "";
+            return;
+        }
+
+        setUploadedFile(file);
+    }
 
     async function removeFile(id)
     {
@@ -137,7 +153,7 @@ export default function DashboardPage() {
             <input
                 ref={fileInputRef}
                 type="file"
-                onChange={e => setUploadedFile(e.target.files[0])}
+                onChange={e => handleFileUpload(e)}
             />
 
             {uploadedFile && (

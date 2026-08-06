@@ -18,7 +18,7 @@ public static class Constants
 
     public static class Files
     {
-        public const long MaxSize = 10L * 1024 * 1024 * 1024;
+        public const long MaxSize = 1024L * 1024 * 1024; // 1 GB
         public const int BufferSize = 8192;
 
         public static readonly HashSet<string> ForbiddenExtensions =
