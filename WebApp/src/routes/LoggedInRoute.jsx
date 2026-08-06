@@ -1,5 +1,5 @@
 import {Navigate} from "react-router-dom";
-import {useAuth} from "./AuthContext";
+import {useAuth} from "../utils/AuthContext";
 
 export default function LoggedInRoute({children}) 
 {

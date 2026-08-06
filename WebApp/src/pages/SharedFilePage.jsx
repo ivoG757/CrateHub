@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import {downloadFile, fileInfo} from "../Utils/api/Files.js";
+import {downloadFile, fileInfo} from "../utils/api/Files.js";
 import { useEffect, useState } from "react";
 export default function SharedFilePage() 
 {

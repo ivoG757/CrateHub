@@ -1,4 +1,4 @@
-import NavBar from "../Components/NavBar.jsx";
+import NavBar from "../components/NavBar.jsx";
 export default function HomePage() {
     return (
             <div>

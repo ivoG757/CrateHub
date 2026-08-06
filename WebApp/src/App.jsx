@@ -5,9 +5,10 @@ import { Routes, Route } from "react-router-dom";
 import RegisterPage from './pages/RegisterPage.jsx'
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
-import ProtectedRoute from "./Utils/ProtectedRoute.jsx";
+import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import SharedFilePage from './pages/SharedFilePage.jsx';
-import LoggedInRoute from './Utils/LoggedInRoute.jsx';
+import LoggedInRoute from './routes/LoggedInRoute.jsx';
+import { AuthProvider } from './utils/AuthContext.jsx';
 
 function App() {
   const [count, setCount] = useState(0)

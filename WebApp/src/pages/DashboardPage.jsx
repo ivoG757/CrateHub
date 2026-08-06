@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "../Utils/AuthContext";
+import { useAuth } from "../utils/AuthContext.jsx";
 import { loadMyFiles, uploadNewFile, deleteMyFile } from "../utils/api/Files.js"
-import { MAX_FILE_SIZE } from "../Constants/FileValidation.js";
+import { MAX_FILE_SIZE } from "../constants/FileValidation.js";
 
 export default function DashboardPage() {
     const { user, logout } = useAuth();

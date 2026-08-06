@@ -1,7 +1,8 @@
 import {useState} from 'react';
-import { useAuth } from "../Utils/AuthContext";
+import { useAuth } from "../utils/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./RegisterPage.css";
+import { PASSWORD, USERNAME, EMAIL } from "../constants/UserValidation.js";
 export default function RegisterPage() 
 {
     const [error, setError] = useState('');
@@ -15,8 +16,13 @@ export default function RegisterPage()
     async function handleSubmit(e)
     {
         e.preventDefault();
-
         setError("");
+
+
+        if(!validateForm())
+        {
+            return;
+        }
 
         try
         {
@@ -29,11 +35,40 @@ export default function RegisterPage()
             setError(e.message);
         }
     }
+
     function validateForm()
     {
-        if (!email || !username || !password || !confirmPassword) 
-            {
+        if (!email || !username || !password || !confirmPassword)
+        {
+            setError("Please fill in all fields");
+            return false;
         }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        {
+            setError("Please enter a valid email address");
+            return false;
+        }
+
+        if (username.length < USERNAME.MIN_LENGTH || username.length > USERNAME.MAX_LENGTH)
+        {
+            setError(`Username must be between ${USERNAME.MIN_LENGTH} and ${USERNAME.MAX_LENGTH} characters`);
+            return false;
+        }
+
+        if (password.length < PASSWORD.MIN_LENGTH || password.length > PASSWORD.MAX_LENGTH)
+        {
+            setError(`Password must be between ${PASSWORD.MIN_LENGTH} and ${PASSWORD.MAX_LENGTH} characters`);
+            return false;
+        }
+
+        if (password !== confirmPassword)
+        {
+            setError("Passwords do not match");
+            return false;
+        }
+
+        return true;
     }
 
     return (
